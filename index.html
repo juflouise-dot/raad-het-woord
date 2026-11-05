@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Raad het woord met a of aa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap">
+<style>
+/* Layout: één scherm zonder scrollen — liggend: links prent en uitleg, rechts bord en toetsen; staand: alles onder elkaar, maten in vh */
+:root{
+  
+  --bg:#e8f3fb; --panel:#ffffff; --ink:#1f2a37; --muted:#5b6b7d;
+  --line:#d93b3b; --tile:#ffffff; --tile-edge:#b9c7d6;
+  --good:#3aa756; --near:#f2b705; --miss:#8d99a6; --key:#ffffff; --key-edge:#aebccb;
+  --accent:#2a6fd6;
+  --font:"Nunito","Arial Rounded MT Bold",Arial,sans-serif;
+  --tile-size:min(10.5vh,13vw,92px);
+  --key-h:min(7vh,64px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14202c; --panel:#1d2b3a; --ink:#eef4fa; --muted:#a7b6c6; --tile:#24364a; --tile-edge:#3d5269;
+  --key:#2a3e54; --key-edge:#45607c; --miss:#55626f; --accent:#6aa5ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14202c; --panel:#1d2b3a; --ink:#eef4fa; --muted:#a7b6c6; --tile:#24364a; --tile-edge:#3d5269;
+  --key:#2a3e54; --key-edge:#45607c; --miss:#55626f; --accent:#6aa5ff; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);margin:0;overflow:hidden}
+.app{height:100%;box-sizing:border-box;max-width:1300px;margin:0 auto;padding-block:1.5vh;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:3vw;align-items:center}
+.side{display:flex;flex-direction:column;gap:2.2vh;align-items:center;min-width:0}
+.play{display:flex;flex-direction:column;gap:2vh;align-items:center;min-width:0}
+h1{font-size:min(4.6vh,3vw,40px);font-weight:900;margin:0;text-align:center;text-wrap:balance;line-height:1.15}
+h1 span{color:var(--accent)}
+.count{font-weight:800;color:var(--muted);font-size:min(2.6vh,20px)}
+.legend{display:flex;flex-direction:column;gap:.8vh;font-weight:800;font-size:min(2.6vh,20px);color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:10px}
+.legend i{display:inline-block;width:min(3vh,26px);height:min(3vh,26px);border-radius:6px;flex:none}
+.prent{display:flex;align-items:center;gap:20px;background:var(--panel);border-radius:22px;padding:1.5vh 24px;box-shadow:0 3px 0 var(--tile-edge)}
+.pic{font-size:min(17vh,150px);line-height:1;display:grid;place-items:center;width:1.1em;height:1.1em}
+.pic svg{width:1em;height:1em}
+.tools{display:flex;flex-direction:column;gap:1.2vh}
+.btn{font-family:var(--font);font-weight:800;font-size:min(2.6vh,20px);border:0;border-radius:14px;padding:1.1vh 16px;cursor:pointer;background:var(--key);color:var(--ink);box-shadow:0 4px 0 var(--key-edge);white-space:nowrap}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--key-edge)}
+.btn:focus-visible,.k:focus-visible{outline:4px solid var(--accent);outline-offset:2px}
+.btn.locked{opacity:.55;cursor:not-allowed}
+.btn.locked:active{transform:none;box-shadow:0 4px 0 var(--key-edge)}
+.btn.main{background:var(--accent);color:#fff;box-shadow:0 4px 0 #1b4f9e;font-size:min(3vh,24px)}
+.msgbox{display:flex;flex-direction:column;align-items:center;gap:1.2vh;min-height:11vh;justify-content:center}
+.msg{font-size:min(3.4vh,28px);font-weight:900;text-align:center}
+.msg.win{color:var(--good)}
+.board{display:grid;gap:1.2vh;padding-top:1.5vh;border-top:5px solid var(--line)}
+.row{display:flex;gap:1.2vh;justify-content:center}
+.row.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.t{width:var(--tile-size);height:var(--tile-size);box-sizing:border-box;border-radius:14px;background:var(--tile);border:3px solid var(--tile-edge);display:grid;place-items:center;font-size:calc(var(--tile-size)*.58);font-weight:900;color:var(--ink)}
+.t.filled{border-color:var(--ink);animation:pop .12s}
+@keyframes pop{50%{transform:scale(1.08)}}
+.t.ghost{color:var(--muted);opacity:.45}
+.t.good{background:var(--good);border-color:var(--good);color:#fff}
+.t.near{background:var(--near);border-color:var(--near);color:#1f2a37}
+.t.miss{background:var(--miss);border-color:var(--miss);color:#fff}
+.t.flip{animation:flip .45s ease both}
+@keyframes flip{0%{transform:rotateX(0)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+.keys{display:flex;flex-direction:column;gap:1vh;width:100%}
+.krow{display:flex;gap:6px;justify-content:center}
+.k{font-family:var(--font);flex:1;max-width:64px;min-width:0;height:var(--key-h);border:0;border-radius:12px;background:var(--key);color:var(--ink);font-size:calc(var(--key-h)*.45);font-weight:900;cursor:pointer;box-shadow:0 4px 0 var(--key-edge);padding:0}
+.k.vowel{color:var(--accent)}
+.k.wide{max-width:120px;flex:1.8;font-size:min(calc(var(--key-h)*.32),3.4vw);white-space:nowrap}
+.k.good{background:var(--good);color:#fff;box-shadow:0 4px 0 #2a7a3f}
+.k.near{background:var(--near);color:#1f2a37;box-shadow:0 4px 0 #b88a00}
+.k.miss{background:var(--miss);color:#fff;box-shadow:0 4px 0 #5f6a75}
+.stars{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.stars span{position:absolute;top:-40px;font-size:34px;animation:fall 1.8s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg)}}
+/* staand scherm (gsm, tablet rechtop) */
+@media (max-aspect-ratio:1/1){
+  :root{--tile-size:min(7.6vh,17vw);--key-h:min(5.6vh,56px)}
+  .app{grid-template-columns:minmax(0,1fr);gap:1vh;align-content:center}
+  .side{gap:1vh}
+  h1{font-size:min(3.4vh,6vw)}
+  .legend{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:4px 12px;font-size:min(1.8vh,3.6vw)}
+  .legend i{width:min(2.2vh,18px);height:min(2.2vh,18px)}
+  .prent{padding:.8vh 16px;gap:14px}
+  .pic{font-size:min(9vh,22vw)}
+  .btn{font-size:min(2vh,4vw)}
+  .count{display:none}
+  .msgbox{min-height:6vh;gap:.6vh}
+  .msg{font-size:min(2.6vh,5vw)}
+}
+@media (prefers-reduced-motion:reduce){.t.flip,.t.filled,.row.shake,.stars span{animation:none}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <section class="side">
+    <h1>Raad het woord met <span>a</span> of <span>aa</span></h1>
+    <div class="count" id="count">woord 1 van 20</div>
+    <div class="prent">
+      <div class="pic" id="pic" role="img" aria-label="prent van het woord"></div>
+      <div class="tools">
+        <button class="btn" id="say" type="button">🔒 nog 2x raden</button>
+        <button class="btn" id="hint" type="button">💡 hulp</button>
+      </div>
+    </div>
+    <div class="legend" aria-label="Uitleg kleuren">
+      <span><i style="background:var(--good)"></i>juist!</span>
+      <span><i style="background:var(--near)"></i>juiste letter, andere plaats</span>
+      <span><i style="background:var(--miss)"></i>niet in het woord</span>
+    </div>
+    <div class="msgbox">
+      <div class="msg" id="msg" aria-live="polite"></div>
+      <button class="btn main" id="next" type="button" hidden>volgend woord ➜</button>
+    </div>
+  </section>
+
+  <section class="play">
+    <div class="board" id="board"></div>
+    <div class="keys" id="keys"></div>
+  </section>
+</div>
+<div class="stars" id="stars"></div>
+
+<script>
+// Elke tegel is één letter zoals op de letterdoos: aa is één letter (k-aa-s).
+const SVG={
+tak:'<svg viewBox="0 0 100 100"><path d="M8 80 Q45 60 92 28" stroke="#7a4a1e" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M52 57 Q58 40 54 24" stroke="#7a4a1e" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M30 68 Q26 84 34 92" stroke="#7a4a1e" stroke-width="5" fill="none" stroke-linecap="round"/><g fill="#4caf50"><ellipse cx="54" cy="20" rx="7" ry="12" transform="rotate(10 54 20)"/><ellipse cx="66" cy="32" rx="6" ry="11" transform="rotate(60 66 32)"/><ellipse cx="88" cy="20" rx="6" ry="11" transform="rotate(40 88 20)"/><ellipse cx="78" cy="44" rx="6" ry="11" transform="rotate(110 78 44)"/><ellipse cx="38" cy="90" rx="5" ry="9" transform="rotate(120 38 90)"/></g></svg>',
+hap:'<svg viewBox="0 0 100 100"><defs><mask id="bite"><rect width="100" height="100" fill="#fff"/><circle cx="86" cy="50" r="11" fill="#000"/><circle cx="84" cy="66" r="10" fill="#000"/><circle cx="86" cy="36" r="9" fill="#000"/></mask></defs><path d="M50 30 C30 18 10 30 12 55 C14 80 34 94 50 86 C66 94 86 80 88 55 C90 30 70 18 50 30Z" fill="#e23b3b" mask="url(#bite)"/><path d="M50 30 Q50 18 56 10" stroke="#6b3e1a" stroke-width="5" fill="none" stroke-linecap="round"/><ellipse cx="64" cy="16" rx="10" ry="5" fill="#4caf50" transform="rotate(-25 64 16)"/><ellipse cx="30" cy="48" rx="5" ry="9" fill="#fff" opacity=".45"/></svg>',
+kam:'<svg viewBox="0 0 100 100"><rect x="8" y="28" width="84" height="18" rx="7" fill="#e07b39"/><g stroke="#e07b39" stroke-width="5" stroke-linecap="round"><line x1="14" y1="44" x2="14" y2="74"/><line x1="22" y1="44" x2="22" y2="66"/><line x1="30" y1="44" x2="30" y2="74"/><line x1="38" y1="44" x2="38" y2="66"/><line x1="46" y1="44" x2="46" y2="74"/><line x1="54" y1="44" x2="54" y2="66"/><line x1="62" y1="44" x2="62" y2="74"/><line x1="70" y1="44" x2="70" y2="66"/><line x1="78" y1="44" x2="78" y2="74"/><line x1="86" y1="44" x2="86" y2="66"/></g></svg>'
+};
+const WORDS=[
+  // korte a
+  {w:["k","a","t"],p:"🐱"},{w:["p","a","n"],p:"🍳"},{w:["s","a","p"],p:"🧃"},
+  {w:["t","a","k"],p:SVG.tak},{w:["h","a","p"],p:SVG.hap},{w:["k","a","m"],p:SVG.kam},
+  {w:["z","a","k"],p:"🛍️"},{w:["m","a","p"],p:"📁"},{w:["d","a","s"],p:"🦡"},
+  {w:["j","a","s"],p:"🧥"},{w:["r","a","t"],p:"🐀"},{w:["b","a","l"],p:"⚽"},
+  {w:["t","a","s"],p:"👜"},{w:["l","a","m"],p:"🐑"},
+  // lange aa
+  {w:["k","aa","s"],p:"🧀"},{w:["aa","p"],p:"🐒"},{w:["h","aa","n"],p:"🐓"},
+  {w:["m","aa","n"],p:"🌙"},{w:["v","aa","s"],p:"🏺"},{w:["h","aa","s"],p:"🐇"}
+];
+const TRIES=5;
+const KEYROWS=[["a","aa","e","ee","i","ie","o","oo","u"],["b","d","f","h","j","k","l","m","n"],["wis","p","r","s","t","v","w","z","ok"]];
+const VOWELS=new Set(["a","aa","e","ee","i","ie","o","oo","u"]);
+let order=[],idx=0,word=[],row=0,cur=[],done=false,hintN=0,keyState={};
+const $=id=>document.getElementById(id);
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function buildKeys(){
+  const k=$("keys");k.innerHTML="";
+  KEYROWS.forEach(r=>{
+    const d=document.createElement("div");d.className="krow";
+    r.forEach(l=>{
+      const b=document.createElement("button");b.type="button";b.dataset.k=l;
+      if(l==="wis"){b.className="k wide";b.textContent="⌫ wis"}
+      else if(l==="ok"){b.className="k wide";b.textContent="✓ klaar"}
+      else{b.className="k"+(VOWELS.has(l)?" vowel":"");b.textContent=l}
+      b.addEventListener("click",()=>press(l));d.appendChild(b);
+    });
+    k.appendChild(d);
+  });
+}
+function start(){
+  word=order[idx].w;row=0;cur=[];done=false;hintN=0;keyState={};
+  $("pic").innerHTML=order[idx].p;
+  $("count").textContent=`woord ${idx+1} van ${order.length}`;
+  $("msg").textContent="";$("msg").className="msg";$("next").hidden=true;
+  const b=$("board");b.innerHTML="";
+  for(let r=0;r<TRIES;r++){const d=document.createElement("div");d.className="row";
+    for(let c=0;c<word.length;c++){const t=document.createElement("div");t.className="t";d.appendChild(t)}b.appendChild(d)}
+  document.querySelectorAll(".k").forEach(k=>k.classList.remove("good","near","miss"));
+  updateSay();paint();
+}
+function tiles(r){return $("board").children[r].children}
+function paint(){
+  if(row>=TRIES)return;
+  const ts=tiles(row);
+  for(let c=0;c<word.length;c++){
+    const t=ts[c];
+    if(cur[c]){t.textContent=cur[c];t.className="t filled"}
+    else if(c<hintN){t.textContent=word[c];t.className="t ghost"}
+    else{t.textContent="";t.className="t"}
+  }
+}
+function press(v){
+  if(done)return;
+  if(v==="wis"){cur.pop();paint();return}
+  if(v==="ok"){check();return}
+  if(cur.length<word.length){cur.push(v);paint()}
+}
+function check(){
+  if(cur.length<word.length){
+    const r=$("board").children[row];r.classList.remove("shake");void r.offsetWidth;r.classList.add("shake");
+    $("msg").textContent="Je hebt nog niet alle letters.";$("msg").className="msg";return}
+  const n=word.length,res=Array(n).fill("miss"),left=word.slice(),guess=cur.slice();
+  guess.forEach((l,i)=>{if(l===word[i]){res[i]="good";left[i]=null}});
+  guess.forEach((l,i)=>{if(res[i]!=="good"){const j=left.indexOf(l);if(j>-1){res[i]="near";left[j]=null}}});
+  const ts=tiles(row);
+  res.forEach((s,i)=>setTimeout(()=>{ts[i].classList.remove("filled","ghost");ts[i].classList.add("flip",s);setKey(guess[i],s)},i*220));
+  const win=res.every(s=>s==="good"),w=word.join("");
+  setTimeout(()=>{
+    if(win){done=true;$("msg").textContent=`Super! Je las: ${w} 🎉`;$("msg").className="msg win";$("next").hidden=false;speak(w);stars()}
+    else if(row===TRIES-1){done=true;$("msg").textContent=`Het woord was: ${w}. Knap geprobeerd!`;$("next").hidden=false;speak(w)}
+    else $("msg").textContent="";
+    row++;cur=[];updateSay();if(!done)paint();
+  },n*220+250);
+}
+function setKey(l,s){
+  const rank={miss:0,near:1,good:2};
+  if(keyState[l]!==undefined&&rank[keyState[l]]>=rank[s])return;
+  keyState[l]=s;
+  const k=document.querySelector(`.k[data-k="${l}"]`);
+  if(k){k.classList.remove("good","near","miss");k.classList.add(s)}
+}
+function updateSay(){
+  const b=$("say"),open=row>=2||done;
+  b.disabled=!open;b.classList.toggle("locked",!open);
+  b.textContent=open?"🔊 luister":`🔒 nog ${2-row}x raden`;
+}
+function speak(t){
+  try{
+    if(!("speechSynthesis" in window))return;
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(t);u.lang="nl-BE";u.rate=.7;
+    const v=speechSynthesis.getVoices().find(v=>/^nl/i.test(v.lang));if(v)u.voice=v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function stars(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const s=$("stars");
+  for(let i=0;i<24;i++){const e=document.createElement("span");e.textContent=["⭐","🌟","✨"][i%3];
+    e.style.left=Math.random()*100+"vw";e.style.animationDelay=Math.random()*.6+"s";s.appendChild(e);setTimeout(()=>e.remove(),2600)}
+}
+$("say").addEventListener("click",()=>{if(row>=2||done)speak(word.join(""))});
+if(!("speechSynthesis" in window))$("say").hidden=true;
+$("hint").addEventListener("click",()=>{if(done)return;if(hintN<word.length-1){hintN++;paint()}});
+$("next").addEventListener("click",()=>{idx++;if(idx>=order.length){order=shuffle(WORDS);idx=0}start()});
+// gewoon toetsenbord: twee keer a na elkaar wordt aa (ook ee, oo; i+e wordt ie)
+const PAIRS={"a+a":"aa","e+e":"ee","o+o":"oo","i+e":"ie"};
+document.addEventListener("keydown",e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(e.key==="Enter"){e.preventDefault();if(done)$("next").click();else press("ok");return}
+  if(e.key==="Backspace"){e.preventDefault();press("wis");return}
+  if(!/^[a-z]$/i.test(e.key)||done)return;
+  const l=e.key.toLowerCase(),last=cur[cur.length-1],pair=PAIRS[last+"+"+l];
+  if(pair){cur[cur.length-1]=pair;paint()}else press(l);
+});
+order=shuffle(WORDS);buildKeys();start();
+</script>
+</body>
+</html>
